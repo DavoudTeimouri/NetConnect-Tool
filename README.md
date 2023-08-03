@@ -39,33 +39,53 @@ NetConnect is a simple command-line tool that allows you to create TCP/UDP ports
 
 ## Command-Line Options
 
-Each version of the NetConnect tool supports command-line options to create ports and specify the duration to keep the ports up. If no duration is provided, the default duration is 5 minutes (300 seconds).
+Each version of the NetConnect tool supports command-line options to create ports and test connections separately. If no duration is provided, the default duration is 5 minutes (300 seconds).
 
 ### Bash
 
-`./netconnect.sh -c <port1> [<port2> ...] -d <duration_in_seconds>`
+#### To create ports on the local computer
+`./netconnect.sh -c <PORT_1> <PORT_2> ...`
+
+#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
+`./netconnect.sh -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1> <PORT_2> ...`
 
 ### Perl
 
-`perl netconnect.pl -c <port1> [<port2> ...] -d <duration_in_seconds>`
+#### To create ports on the local computer
+`perl netconnect.pl -c <PORT_1> <PORT_2> ...`
+
+#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
+`perl netconnect.pl -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1> <PORT_2> ...`
 
 ### Python
 
-`python3 netconnect.py -c <port1> [<port2> ...] -d <duration_in_seconds>`
+#### To create ports on the local computer
+`python3 netconnect.py -c <PORT_1> <PORT_2> ...`
+
+#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
+`python3 netconnect.py -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1> <PORT_2> ...`
 
 ### PowerShell
 
-`.\netconnect.ps1 -c <port1> [<port2> ...] -d <duration_in_seconds>`
+#### To create ports on the local computer
+`.\netconnect.ps1 -c <PORT_1> <PORT_2> ...`
+
+#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
+`.\netconnect.ps1 -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1>,<PORT_2>,...`
 
 ### Examples
 
-1. Create ports 8080 and 9000 on remote server 192.168.1.100 using PowerShell and keep them up for 10 minutes:
+1. Create ports 8080 and 9000 on the local computer using PowerShell:
 
-`.\netconnect.ps1 -c 192.168.1.100 8080,9000 -d 600`
+`.\netconnect.ps1 -c 8080 9000`
 
-2. Test connectivity to ports 22, 80, and 443 on remote server example.com using Python:
+2. Test connectivity to ports 22, 80, and 443 on multiple servers (192.168.1.100, 203.0.113.10) using Bash:
 
-`python3 netconnect.py -c example.com 22 80 443`
+`./netconnect.sh -t 192.168.1.100-203.0.113.10 -p 22 80 443`
+
+3. Test connectivity to ports 80 and 443 on a range of IP addresses (192.168.1.100-192.168.1.110) using Python:
+
+`python3 netconnect.py -t 192.168.1.100-192.168.1.110 -p 80 443`
 
 ## Help Option
 
@@ -82,5 +102,3 @@ To display usage information and help, use the `-h` or `--help` option with any 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-Please copy the updated content and paste it into the README.md file in your project repository. The updated README.md now includes information about the new features, command-line options, examples, and the help option.
