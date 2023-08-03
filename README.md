@@ -8,6 +8,9 @@ NetConnect is a simple command-line tool that allows you to create TCP/UDP ports
 - Check connectivity with other servers via multiple ports.
 - Supports both interactive menu-driven interactions and command-line inputs.
 - Includes a help option to display usage information.
+- Network hop checking to trace the route of failed connections.
+- Automatic shutdown of created ports on exit.
+- Duration option to keep the ports up for a specified time (default: 5 minutes).
 
 ## Requirements
 
@@ -20,53 +23,51 @@ NetConnect is a simple command-line tool that allows you to create TCP/UDP ports
 
 ### Bash Version
 
-Run the script with the following options:
-
-1. To create multiple ports: `./netconnect.sh -c <port1> [<port2> ...]`
-   Example: `./netconnect.sh -c 8080 8888 9000`
-
-2. To check connectivity with other servers: `./netconnect.sh -ch -s <IP> -p <port>`
-   Example: `./netconnect.sh -ch -s 192.168.1.100 -p 80`
-
-3. To use the interactive menu: `./netconnect.sh`
+`./netconnect.sh`
 
 ### Perl Version
 
-Run the script with the following options:
-
-1. To create multiple ports: `perl netconnect.pl -c <port1> [<port2> ...]`
-   Example: `perl netconnect.pl -c 8080 8888 9000`
-
-2. To check connectivity with other servers: `perl netconnect.pl -ch -s <IP> -p <port>`
-   Example: `perl netconnect.pl -ch -s 192.168.1.100 -p 80`
-
-3. To use the interactive menu: `perl netconnect.pl`
+`perl netconnect.pl`
 
 ### Python Version
 
-Run the script with the following options:
-
-1. To create multiple ports: `python3 netconnect.py -c <port1> [<port2> ...]`
-   Example: `python3 netconnect.py -c 8080 8888 9000`
-
-2. To check connectivity with other servers: `python3 netconnect.py -ch -s <IP> -p <port>`
-   Example: `python3 netconnect.py -ch -s 192.168.1.100 -p 80`
-
-3. To use the interactive menu: `python3 netconnect.py`
+`python3 netconnect.py`
 
 ### PowerShell Version
 
-Run the script with the following options:
+`.\netconnect.ps1`
 
-1. To create multiple ports: `.\netconnect.ps1 -c <port1> [<port2> ...]`
-   Example: `.\netconnect.ps1 -c 8080 8888 9000`
+## Command-Line Options
 
-2. To check connectivity with other servers: `.\netconnect.ps1 -ch -s <IP> -p <port>`
-   Example: `.\netconnect.ps1 -ch -s 192.168.1.100 -p 80`
+Each version of the NetConnect tool supports command-line options to create ports and specify the duration to keep the ports up. If no duration is provided, the default duration is 5 minutes (300 seconds).
 
-3. To use the interactive menu: `.\netconnect.ps1`
+### Bash
 
-### Help Option
+`./netconnect.sh -c <port1> [<port2> ...] -d <duration_in_seconds>`
+
+### Perl
+
+`perl netconnect.pl -c <port1> [<port2> ...] -d <duration_in_seconds>`
+
+### Python
+
+`python3 netconnect.py -c <port1> [<port2> ...] -d <duration_in_seconds>`
+
+### PowerShell
+
+`.\netconnect.ps1 -c <port1> [<port2> ...] -d <duration_in_seconds>`
+
+### Examples
+
+1. Create ports 8080 and 9000 on remote server 192.168.1.100 using PowerShell and keep them up for 10 minutes:
+
+`.\netconnect.ps1 -c 192.168.1.100 8080,9000 -d 600`
+
+2. Test connectivity to ports 22, 80, and 443 on remote server example.com using Python:
+
+`python3 netconnect.py -c example.com 22 80 443`
+
+## Help Option
 
 To display usage information and help, use the `-h` or `--help` option with any version of the script:
 
@@ -77,3 +78,9 @@ To display usage information and help, use the `-h` or `--help` option with any 
 `python3 netconnect.py -h`
 
 `.\netconnect.ps1 -h`
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Please copy the updated content and paste it into the README.md file in your project repository. The updated README.md now includes information about the new features, command-line options, examples, and the help option.
