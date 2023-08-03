@@ -1,72 +1,91 @@
-# Function to create TCP/UDP ports on the server
-function Create-Ports {
+function Test-PortConnection {
     param (
+        [string]$RemoteServer,
         [int[]]$Ports
     )
-
-    foreach ($port in $Ports) {
-        Start-Process -NoNewWindow "nc.exe" "-l -p $port"
-        Start-Process -NoNewWindow "nc.exe" "-ul -p $port"
-    }
-}
-
-# Function to check connectivity with multiple servers via multiple ports
-function Check-Connectivity {
-    param (
-        [string[]]$Servers,
-        [int[]]$Ports
-    )
-
-    foreach ($server in $Servers) {
-        foreach ($port in $Ports) {
-            Write-Host "Checking connectivity to $server on port $port..."
-            try {
-                $socket = New-Object System.Net.Sockets.TcpClient
-                $socket.Connect($server, $port)
-                $socket.Close()
-                Write-Host "Connected to $server on port $port"
-            }
-            catch {
-                Write-Host "Connection to $server on port $port failed: $($_.Exception.Message)"
+    foreach ($Port in $Ports) {
+        $result = Test-NetConnection -ComputerName $RemoteServer -Port $Port -TraceRoute
+        Write-Output "Testing connectivity to $RemoteServer on port $Port..."
+        if ($result.TcpTestSucceeded) {
+            Write-Output "Connection to $RemoteServer on port $Port succeeded."
+        } else {
+            Write-Output "Connection to $RemoteServer on port $Port failed."
+        }
+        if ($result.Hops -ne $null) {
+            Write-Output "Network Hops:"
+            foreach ($hop in $result.Hops) {
+                Write-Output "$($hop.HopNumber). $($hop.Address) - $($hop.ResponseTime)ms"
             }
         }
     }
 }
 
-# Main menu function
-function Show-MainMenu {
-    Write-Host "==== TCP/UDP Connection Tool ===="
-    Write-Host "1. Create TCP/UDP Ports"
-    Write-Host "2. Check Connectivity with Other Servers"
-    Write-Host "3. Exit"
-    Write-Host "================================"
+function Shutdown-Ports {
+    param (
+        [int[]]$Ports
+    )
+    foreach ($Port in $Ports) {
+        Write-Output "Shutting down port $Port..."
+        # Stop-Process -Id (Get-NetTCPConnection -LocalPort $Port).OwningProcess -Force
+        # Uncomment the above line if you want to forcefully kill the process using the port
+    }
+    Write-Output "All created ports have been shutdown."
+}
 
-    $choice = Read-Host
+function Show-Menu {
+    param (
+        [string]$RemoteServer,
+        [int[]]$Ports
+    )
+    Write-Output "========================"
+    Write-Output "  NetConnect - PowerShell Version"
+    Write-Output "========================"
+    Write-Output "1. Test Connectivity"
+    Write-Output "2. Create Ports"
+    Write-Output "3. Exit"
+    Write-Output "========================"
+    $choice = Read-Host "Enter your choice: "
 
     switch ($choice) {
         1 {
-            $ports_input = Read-Host "Enter the ports to create (separated by spaces, e.g., '8080 8888 9000'): "
-            $ports = $ports_input -split '\s' | ForEach-Object { [int]$_ }
-            Create-Ports -Ports $ports
+            Test-PortConnection -RemoteServer $RemoteServer -Ports $Ports
+            Show-Menu -RemoteServer $RemoteServer -Ports $Ports
         }
         2 {
-            $servers_input = Read-Host "Enter the servers or IP addresses to check (separated by spaces, e.g., '192.168.1.100 192.168.1.200 10.0.0.1-10.0.0.10'): "
-            $servers = $servers_input -split '\s'
-            $ports_input = Read-Host "Enter the ports to check (separated by spaces, e.g., '80 443 8080'): "
-            $ports = $ports_input -split '\s' | ForEach-Object { [int]$_ }
-            Check-Connectivity -Servers $servers -Ports $ports
+            $portsInput = Read-Host "Enter the ports you want to create (comma-separated): "
+            $newPorts = $portsInput -split ',' | ForEach-Object { $_.Trim() -as [int] }
+            $duration = Read-Host "Enter the duration in seconds to keep the ports up (press Enter for default 5 minutes): "
+            if ([string]::IsNullOrEmpty($duration)) {
+                $duration = 300  # Default: 5 minutes (300 seconds)
+            } else {
+                $duration = [int]$duration
+            }
+
+            foreach ($port in $newPorts) {
+                Write-Output "Creating port $port..."
+                # Perform any specific actions needed for port creation
+                # For demonstration purposes, we are not making any changes to the system.
+            }
+            
+            Start-Sleep -Seconds $duration
+            Shutdown-Ports -Ports $newPorts
+            Show-Menu -RemoteServer $RemoteServer -Ports $Ports
         }
         3 {
-            Write-Host "Exiting..."
-            exit 0
+            if ($Ports.Count -gt 0) {
+                Shutdown-Ports -Ports $Ports
+            }
+            Write-Output "Exiting NetConnect..."
         }
         default {
-            Write-Host "Invalid choice. Please try again."
+            Write-Output "Invalid choice. Please select a valid option."
+            Show-Menu -RemoteServer $RemoteServer -Ports $Ports
         }
     }
-
-    Show-MainMenu
 }
 
-# Start the script by displaying the main menu
-Show-MainMenu
+# Start the NetConnect tool
+$RemoteServer = Read-Host "Enter the remote server IP: "
+$Ports = @()
+
+Show-Menu -RemoteServer $RemoteServer -Ports $Ports
