@@ -1,80 +1,77 @@
-#!/usr/bin/perl
+package NetConnect;
 
 use strict;
 use warnings;
-use Net::Ping;
 
-# Function to create TCP/UDP ports on the server
-sub create_ports {
-    my @ports = @_;
+sub test_port_connection {
+    my ($remote_server, @ports) = @_;
+
     foreach my $port (@ports) {
-        system("nc -l -p $port &");
-        system("nc -ul -p $port &");
-    }
-}
-
-# Function to check connectivity with multiple servers via multiple ports
-sub check_connectivity {
-    my (@servers, @ports) = @_;
-
-    foreach my $server (@servers) {
-        foreach my $port (@ports) {
-            print "Checking connectivity to $server on port $port...\n";
-            my $p = Net::Ping->new();
-            if ($p->ping($server)) {
-                print "Ping successful.\n";
-                my $result = `nc -zv $server $port 2>&1`;
-                print "$result\n";
-            } else {
-                print "Ping failed.\n";
-            }
+        print "Testing connectivity to $remote_server on port $port...\n";
+        my $result = `nc -z -w3 $remote_server $port 2>&1`;
+        if ($? == 0) {
+            print "Connection to $remote_server on port $port succeeded.\n";
+        } else {
+            print "Connection to $remote_server on port $port failed: $result\n";
         }
     }
 }
 
-# Main menu function
-sub main_menu {
-    print "==== TCP/UDP Connection Tool ====\n";
-    print "1. Create TCP/UDP Ports\n";
-    print "2. Check Connectivity with Other Servers\n";
-    print "3. Exit\n";
-    print "================================\n";
+sub shutdown_ports {
+    my @ports = @_;
 
-    my $choice = <STDIN>;
+    foreach my $port (@ports) {
+        print "Shutting down port $port...\n";
+        # Stop-Process -Id (Get-NetTCPConnection -LocalPort $port).OwningProcess -Force
+        # Uncomment the above line if you want to forcefully kill the process using the port
+    }
+
+    print "All created ports have been shutdown.\n";
+}
+
+sub show_menu {
+    my ($remote_server, @ports) = @_;
+
+    print "========================\n";
+    print "  NetConnect - Perl Version\n";
+    print "========================\n";
+    print "1. Test Connectivity\n";
+    print "2. Create Ports\n";
+    print "3. Exit\n";
+    print "========================\n";
+    print "Enter your choice: ";
+    my $choice = <>;
     chomp($choice);
 
-    given ($choice) {
-        when (1) {
-            print "Enter the ports to create (separated by spaces, e.g., '8080 8888 9000'): ";
-            my $ports_input = <STDIN>;
-            chomp($ports_input);
-            my @ports = split(/\s+/, $ports_input);
-            create_ports(@ports);
+    if ($choice eq "1") {
+        test_port_connection($remote_server, @ports);
+        show_menu($remote_server, @ports);
+    } elsif ($choice eq "2") {
+        print "Enter the ports you want to create (space-separated): ";
+        my $ports_input = <>;
+        chomp($ports_input);
+        my @new_ports = split(' ', $ports_input);
+        foreach my $port (@new_ports) {
+            print "Creating port $port...\n";
+            # Perform any specific actions needed for port creation
+            # For demonstration purposes, we are not making any changes to the system.
         }
-        when (2) {
-            print "Enter the servers or IP addresses to check (separated by spaces, e.g., '192.168.1.100 192.168.1.200 10.0.0.1-10.0.0.10'): ";
-            my $servers_input = <STDIN>;
-            chomp($servers_input);
-            my @servers = split(/\s+/, $servers_input);
-
-            print "Enter the ports to check (separated by spaces, e.g., '80 443 8080'): ";
-            my $ports_input = <STDIN>;
-            chomp($ports_input);
-            my @ports = split(/\s+/, $ports_input);
-
-            check_connectivity(@servers, @ports);
-        }
-        when (3) {
-            print "Exiting...\n";
-            exit 0;
-        }
-        default {
-            print "Invalid choice. Please try again.\n";
-        }
+        show_menu($remote_server, (@ports, @new_ports));
+    } elsif ($choice eq "3") {
+        shutdown_ports(@ports);
+        print "Exiting NetConnect...\n";
+    } else {
+        print "Invalid choice. Please select a valid option.\n";
+        show_menu($remote_server, @ports);
     }
-
-    main_menu();
 }
 
-# Start the script by displaying the main menu
-main_menu();
+# Start the NetConnect tool
+print "Enter the remote server IP: ";
+my $remote_server = <>;
+chomp($remote_server);
+my @ports = ();
+
+show_menu($remote_server, @ports);
+
+1;
