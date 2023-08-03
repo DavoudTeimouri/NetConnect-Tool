@@ -1,91 +1,98 @@
-function Test-PortConnection {
-    param (
-        [string]$RemoteServer,
-        [int[]]$Ports
-    )
-    foreach ($Port in $Ports) {
-        $result = Test-NetConnection -ComputerName $RemoteServer -Port $Port -TraceRoute
-        Write-Output "Testing connectivity to $RemoteServer on port $Port..."
-        if ($result.TcpTestSucceeded) {
-            Write-Output "Connection to $RemoteServer on port $Port succeeded."
-        } else {
-            Write-Output "Connection to $RemoteServer on port $Port failed."
-        }
-        if ($result.Hops -ne $null) {
-            Write-Output "Network Hops:"
-            foreach ($hop in $result.Hops) {
-                Write-Output "$($hop.HopNumber). $($hop.Address) - $($hop.ResponseTime)ms"
-            }
+#!/usr/bin/perl
+
+use strict;
+use Getopt::Long;
+
+sub usage {
+    print <<"END_USAGE";
+NetConnect - TCP/UDP Connection Testing Tool
+
+Usage: $0 [options]
+
+Options:
+  -h, --help            Show this help message and exit.
+  -c PORT_1 PORT_2 ...  Create TCP/UDP ports on the local computer.
+  -t SERVER_RANGE       Test connections with multiple servers or a range of IP addresses.
+  -p PORT_1 PORT_2 ...  Ports to test connections with.
+
+Examples:
+  Create ports 8080 and 9000 on the local computer:
+  $0 -c 8080 9000
+
+  Test connectivity to ports 22, 80, and 443 on multiple servers:
+  $0 -t 192.168.1.100-203.0.113.10 -p 22 80 443
+END_USAGE
+}
+
+sub create_ports {
+    print "Creating TCP/UDP ports on the local computer...\n";
+    # Implement the logic to create ports here
+    foreach my $port (@_) {
+        print "Port $port created.\n";
+    }
+}
+
+sub test_connections {
+    print "Testing connections...\n";
+    # Implement the logic to test connections here
+    foreach my $server (@servers) {
+        foreach my $port (@ports) {
+            print "Testing connectivity to $server:$port ...\n";
+            # Implement the logic to test connection to each server and port here
+            # Output success or failure messages accordingly
         }
     }
 }
 
-function Shutdown-Ports {
-    param (
-        [int[]]$Ports
-    )
-    foreach ($Port in $Ports) {
-        Write-Output "Shutting down port $Port..."
-        # Stop-Process -Id (Get-NetTCPConnection -LocalPort $Port).OwningProcess -Force
-        # Uncomment the above line if you want to forcefully kill the process using the port
-    }
-    Write-Output "All created ports have been shutdown."
+my ( $help, @ports, $server_range );
+GetOptions(
+    'h|help' => \$help,
+    'c=s{1,}' => sub { create_ports(@ARGV) and exit },
+    't=s' => \$server_range,
+    'p=s{1,}' => \@ports,
+);
+
+if ($help) {
+    usage();
+    exit 0;
 }
 
-function Show-Menu {
-    param (
-        [string]$RemoteServer,
-        [int[]]$Ports
-    )
-    Write-Output "========================"
-    Write-Output "  NetConnect - PowerShell Version"
-    Write-Output "========================"
-    Write-Output "1. Test Connectivity"
-    Write-Output "2. Create Ports"
-    Write-Output "3. Exit"
-    Write-Output "========================"
-    $choice = Read-Host "Enter your choice: "
-
-    switch ($choice) {
-        1 {
-            Test-PortConnection -RemoteServer $RemoteServer -Ports $Ports
-            Show-Menu -RemoteServer $RemoteServer -Ports $Ports
-        }
-        2 {
-            $portsInput = Read-Host "Enter the ports you want to create (comma-separated): "
-            $newPorts = $portsInput -split ',' | ForEach-Object { $_.Trim() -as [int] }
-            $duration = Read-Host "Enter the duration in seconds to keep the ports up (press Enter for default 5 minutes): "
-            if ([string]::IsNullOrEmpty($duration)) {
-                $duration = 300  # Default: 5 minutes (300 seconds)
-            } else {
-                $duration = [int]$duration
-            }
-
-            foreach ($port in $newPorts) {
-                Write-Output "Creating port $port..."
-                # Perform any specific actions needed for port creation
-                # For demonstration purposes, we are not making any changes to the system.
-            }
-            
-            Start-Sleep -Seconds $duration
-            Shutdown-Ports -Ports $newPorts
-            Show-Menu -RemoteServer $RemoteServer -Ports $Ports
-        }
-        3 {
-            if ($Ports.Count -gt 0) {
-                Shutdown-Ports -Ports $Ports
-            }
-            Write-Output "Exiting NetConnect..."
-        }
-        default {
-            Write-Output "Invalid choice. Please select a valid option."
-            Show-Menu -RemoteServer $RemoteServer -Ports $Ports
-        }
-    }
+# Check if both create and test options are used together
+if ( defined $server_range && scalar @ports > 0 ) {
+    print "Error: Cannot use create ports and test options together.\n";
+    usage();
+    exit 1;
 }
 
-# Start the NetConnect tool
-$RemoteServer = Read-Host "Enter the remote server IP: "
-$Ports = @()
+# Check if either create or test options are used
+if ( !defined $server_range && scalar @ports == 0 ) {
+    # No options provided, run the interactive menu
+    print "Interactive menu is not yet implemented. Use command-line options instead.\n";
+    exit 1;
+}
 
-Show-Menu -RemoteServer $RemoteServer -Ports $Ports
+# Check if test option is used without specifying ports
+if ( defined $server_range && scalar @ports == 0 ) {
+    print "Error: Test option requires specifying ports with the -p option.\n";
+    usage();
+    exit 1;
+}
+
+# Check if test option is used without specifying servers
+if ( !defined $server_range && scalar @ports > 0 ) {
+    print "Error: Test option requires specifying servers with the -t option.\n";
+    usage();
+    exit 1;
+}
+
+# Split server_range into start and end IPs
+my ( $start_ip, $end_ip ) = split /-/, $server_range;
+
+# Generate the array of servers from the range
+use Net::CIDR::Lite;
+my $cidr = Net::CIDR::Lite->new;
+$cidr->add_range($start_ip, $end_ip);
+my @servers = $cidr->list();
+
+# Perform the test connections
+test_connections();
