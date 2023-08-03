@@ -14,7 +14,7 @@ NetConnect is a simple command-line tool that allows you to create TCP/UDP ports
 - For Bash version: Linux/Unix-based system.
 - For Perl version: Perl interpreter.
 - For Python version: Python 3.
-- For PowerShell version: Windows OS.
+- For PowerShell version: Windows OS (PowerShell is built into Windows and does not have any additional dependencies).
 
 ## Usage
 
