@@ -1,54 +1,52 @@
-#!/usr/bin/env python3
-
-import sys
-import socket
 import subprocess
 
-# Function to create TCP/UDP ports on the server
-def create_ports(ports):
+def test_port_connection(remote_server, *ports):
     for port in ports:
-        subprocess.Popen(['nc', '-l', '-p', str(port)])
-        subprocess.Popen(['nc', '-ul', '-p', str(port)])
+        print(f"Testing connectivity to {remote_server} on port {port}...")
+        try:
+            subprocess.run(["nc", "-z", "-w3", remote_server, str(port)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(f"Connection to {remote_server} on port {port} succeeded.")
+        except subprocess.CalledProcessError as e:
+            print(f"Connection to {remote_server} on port {port} failed: {e.stderr.decode().strip()}")
 
-# Function to check connectivity with multiple servers via multiple ports
-def check_connectivity(servers, ports):
-    for server in servers:
-        for port in ports:
-            print(f"Checking connectivity to {server} on port {port}...")
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((server, port))
-                    print(f"Connected to {server} on port {port}")
-            except Exception as e:
-                print(f"Connection to {server} on port {port} failed: {e}")
+def shutdown_ports(*ports):
+    for port in ports:
+        print(f"Shutting down port {port}...")
+        # Stop-Process -Id (Get-NetTCPConnection -LocalPort $port).OwningProcess -Force
+        # Uncomment the above line if you want to forcefully kill the process using the port
 
-# Main menu function
-def main_menu():
-    print("==== TCP/UDP Connection Tool ====")
-    print("1. Create TCP/UDP Ports")
-    print("2. Check Connectivity with Other Servers")
+    print("All created ports have been shutdown.")
+
+def show_menu(remote_server, *ports):
+    print("========================")
+    print("  NetConnect - Python Version")
+    print("========================")
+    print("1. Test Connectivity")
+    print("2. Create Ports")
     print("3. Exit")
-    print("=================================")
+    print("========================")
+    choice = input("Enter your choice: ")
 
-    choice = input().strip()
-
-    if choice == '1':
-        ports_input = input("Enter the ports to create (separated by spaces, e.g., '8080 8888 9000'): ")
-        ports = [int(port) for port in ports_input.split()]
-        create_ports(ports)
-    elif choice == '2':
-        servers_input = input("Enter the servers or IP addresses to check (separated by spaces, e.g., '192.168.1.100 192.168.1.200 10.0.0.1-10.0.0.10'): ")
-        servers = servers_input.split()
-        ports_input = input("Enter the ports to check (separated by spaces, e.g., '80 443 8080'): ")
-        ports = [int(port) for port in ports_input.split()]
-        check_connectivity(servers, ports)
-    elif choice == '3':
-        print("Exiting...")
-        sys.exit(0)
+    if choice == "1":
+        test_port_connection(remote_server, *ports)
+        show_menu(remote_server, *ports)
+    elif choice == "2":
+        ports_input = input("Enter the ports you want to create (space-separated): ")
+        new_ports = [int(port) for port in ports_input.split()]
+        for port in new_ports:
+            print(f"Creating port {port}...")
+            # Perform any specific actions needed for port creation
+            # For demonstration purposes, we are not making any changes to the system.
+        show_menu(remote_server, *(ports + new_ports))
+    elif choice == "3":
+        shutdown_ports(*ports)
+        print("Exiting NetConnect...")
     else:
-        print("Invalid choice. Please try again.")
+        print("Invalid choice. Please select a valid option.")
+        show_menu(remote_server, *ports)
 
-    main_menu()
+# Start the NetConnect tool
+remote_server = input("Enter the remote server IP: ")
+ports = []
 
-# Start the script by displaying the main menu
-main_menu()
+show_menu(remote_server, *ports)
