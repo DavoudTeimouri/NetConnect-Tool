@@ -1,104 +1,212 @@
-# NetConnect - TCP/UDP Connection Testing Tool
+# NetConnect - Cross-Platform TCP/UDP Connection Testing Tool
 
-NetConnect is a simple command-line tool that allows you to create TCP/UDP ports on a server and check connectivity with other servers via multiple ports. It provides both interactive menu-driven interactions and support for command-line inputs.
+NetConnect is a modern, cross-platform command-line tool for creating TCP/UDP port listeners and testing connectivity to remote servers across IP ranges. Written in Python 3.10+ with single-codebase architecture.
 
 ## Features
 
-- Create TCP/UDP ports on a server.
-- Check connectivity with other servers via multiple ports.
-- Supports both interactive menu-driven interactions and command-line inputs.
-- Includes a help option to display usage information.
-- Network hop checking to trace the route of failed connections.
-- Automatic shutdown of created ports on exit.
-- Duration option to keep the ports up for a specified time (default: 5 minutes).
+- **Cross-platform single binary** - Linux, Windows, macOS (x64/ARM64)
+- **Port listeners** - Create TCP/UDP listeners on multiple ports
+- **Connection testing** - Test connectivity to IP ranges and port combinations
+- **Multiple output formats** - Table (default), JSON, CSV
+- **Persistent configuration** - YAML config file with sensible defaults
+- **Real socket operations** - TCP connect with latency, UDP datagram testing, listener sockets
+- **Platform-native installers** - DEB/RPM/AppImage, EXE/MSI, PKG/DMG
 
-## Requirements
+## Quick Start
 
-- For Bash version: Linux/Unix-based system.
-- For Perl version: Perl interpreter.
-- For Python version: Python 3.
-- For PowerShell version: Windows OS (PowerShell is built into Windows and does not have any additional dependencies).
+### Download Portable Binary
+```bash
+# Linux
+wget https://github.com/DavoudTeimouri/NetConnect-Tool/releases/latest/download/netconnect
+chmod +x netconnect
+
+# Or build from source
+git clone https://github.com/DavoudTeimouri/NetConnect-Tool
+cd NetConnect-Tool
+./scripts/build_portable.py
+```
+
+### Install via Package Manager
+```bash
+# Debian/Ubuntu
+sudo dpkg -i netconnect_2.0.0_amd64.deb
+
+# RHEL/Fedora
+sudo rpm -i netconnect-2.0.0-1.x86_64.rpm
+
+# Windows
+netconnect-2.0.0-setup.exe
+
+# macOS
+sudo installer -pkg NetConnect-2.0.0.pkg -target /
+```
 
 ## Usage
 
-### Bash Version
+### Create Port Listeners
+```bash
+# Listen on TCP/UDP ports 8080 and 9000 for 60 seconds
+netconnect listen -p 8080 9000 --duration 60
 
-`./netconnect.sh`
+# TCP only
+netconnect listen -p 8080 9000 --protocol tcp
 
-### Perl Version
+# UDP only
+netconnect listen -p 53 --protocol udp
+```
 
-`perl netconnect.pl`
+### Test Connections
+```bash
+# Test TCP ports 22, 80, 443 on IP range
+netconnect test -t 192.168.1.100-192.168.1.110 -p 22 80 443
 
-### Python Version
+# Test with UDP only, JSON output
+netconnect test -t 10.0.0.1-10.0.0.10 -p 53 --protocol udp --output json
 
-`python3 netconnect.py`
+# Single IP, CSV output
+netconnect test -t 192.168.1.1 -p 22 80 443 --output csv
+```
 
-### PowerShell Version
+### Configuration
+```bash
+# Show config file path
+netconnect config show-path
 
-`.\netconnect.ps1`
+# Show current config
+netconnect config show
 
-## Command-Line Options
+# Set defaults
+netconnect config set defaults.duration 60
+netconnect config set defaults.timeout 10
+netconnect config set defaults.output json
+netconnect config set defaults.protocol tcp
 
-Each version of the NetConnect tool supports command-line options to create ports and test connections separately. If no duration is provided, the default duration is 5 minutes (300 seconds).
+# Reset to defaults
+netconnect config reset
+```
 
-### Bash
+## Configuration File
 
-#### To create ports on the local computer
-`./netconnect.sh -c <PORT_1> <PORT_2> ...`
+Location:
+- **Linux/macOS**: `~/.config/netconnect/config.yaml`
+- **Windows**: `%APPDATA%\netconnect\config.yaml`
 
-#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
-`./netconnect.sh -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1> <PORT_2> ...`
+```yaml
+defaults:
+  duration: 300      # Default listener duration (seconds)
+  timeout: 5         # Connection timeout (seconds)
+  output: table      # Output format: table | json | csv
+  protocol: both     # Protocol: tcp | udp | both
 
-### Perl
+logging:
+  level: INFO        # DEBUG | INFO | WARNING | ERROR
+  file: ""           # Log file path (empty = stderr)
+```
 
-#### To create ports on the local computer
-`perl netconnect.pl -c <PORT_1> <PORT_2> ...`
+## Command Reference
 
-#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
-`perl netconnect.pl -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1> <PORT_2> ...`
+### `netconnect listen`
+Create TCP/UDP port listeners.
 
-### Python
+| Option | Description |
+|--------|-------------|
+| `-p, --ports PORTS` | Ports to listen on (required) |
+| `--protocol` | tcp, udp, or both (default: both) |
+| `--duration SEC` | Duration to run (default: indefinite) |
+| `--host HOST` | Bind address (default: 0.0.0.0) |
 
-#### To create ports on the local computer
-`python3 netconnect.py -c <PORT_1> <PORT_2> ...`
+### `netconnect test`
+Test connections to target IPs and ports.
 
-#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
-`python3 netconnect.py -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1> <PORT_2> ...`
+| Option | Description |
+|--------|-------------|
+| `-t, --targets RANGE` | IP range (e.g., 192.168.1.100-192.168.1.110) |
+| `-p, --ports PORTS` | Ports to test (required) |
+| `--protocol` | tcp, udp, or both (default: both) |
+| `--timeout SEC` | Connection timeout (default: 5s) |
+| `--output FORMAT` | table, json, or csv (default: table) |
 
-### PowerShell
+### `netconnect config`
+Manage configuration.
 
-#### To create ports on the local computer
-`.\netconnect.ps1 -c <PORT_1> <PORT_2> ...`
+| Subcommand | Description |
+|------------|-------------|
+| `show` | Display current configuration |
+| `show-path` | Show config file path |
+| `reset` | Reset to defaults |
+| `set KEY VALUE` | Set config value (e.g., `defaults.duration 60`) |
 
-#### To test connections with multiple servers or a range of IP addresses and ports from the local computer
-`.\netconnect.ps1 -t <REMOTE_SERVER1-REMOTE_SERVER2> -p <PORT_1>,<PORT_2>,...`
+## Requirements
 
-### Examples
+- **Runtime**: None (single portable executable)
+- **Build**: Python 3.10+, PyInstaller
+- **Dependencies** (bundled): platformdirs, pyyaml, tabulate
 
-1. Create ports 8080 and 9000 on the local computer using PowerShell:
+## Building from Source
 
-`.\netconnect.ps1 -c 8080 9000`
+```bash
+# Install build dependencies
+pip install -e ".[build]"
 
-2. Test connectivity to ports 22, 80, and 443 on multiple servers (192.168.1.100, 203.0.113.10) using Bash:
+# Build portable executable
+./scripts/build_portable.py
 
-`./netconnect.sh -t 192.168.1.100-203.0.113.10 -p 22 80 443`
+# Output: dist/netconnect (or netconnect.exe on Windows)
+```
 
-3. Test connectivity to ports 80 and 443 on a range of IP addresses (192.168.1.100-192.168.1.110) using Python:
+### Platform-Specific Installers
 
-`python3 netconnect.py -t 192.168.1.100-192.168.1.110 -p 80 443`
+```bash
+# Linux DEB
+dpkg-deb --build packaging/linux/debian
 
-## Help Option
+# Linux RPM
+rpmbuild -ba packaging/linux/rpm/netconnect.spec
 
-To display usage information and help, use the `-h` or `--help` option with any version of the script:
+# Windows EXE (Inno Setup)
+iscc packaging/windows/inno/netconnect.iss
 
-`./netconnect.sh -h`
+# Windows MSI (WiX)
+msbuild packaging/windows/msi/netconnect.wixproj
 
-`perl netconnect.pl -h`
+# macOS PKG
+pkgbuild --root staging --identifier com.netconnect.tool --version 2.0.0 NetConnect-2.0.0.pkg
 
-`python3 netconnect.py -h`
+# macOS DMG
+create-dmg --volname "NetConnect" NetConnect-2.0.0.dmg staging/
+```
 
-`.\netconnect.ps1 -h`
+## Project Structure
+
+```
+NetConnect-Tool/
+├── src/netconnect/
+│   ├── __init__.py       # Package metadata
+│   ├── cli.py            # CLI entry point
+│   ├── core.py           # Socket logic, IP parsing
+│   └── config.py         # Configuration management
+├── tests/
+│   └── test_core.py      # Unit tests
+├── packaging/
+│   ├── linux/            # DEB, RPM, AppImage
+│   ├── windows/          # Inno Setup, WiX/MSI
+│   └── macos/            # pkgbuild, create-dmg
+├── scripts/
+│   └── build_portable.py # PyInstaller wrapper
+├── pyproject.toml        # Modern packaging config
+├── CHANGELOG.md
+├── LICENSE
+└── README.md
+```
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+- **v2.0.0** - Cross-platform redesign, single Python codebase, portable binaries, platform-native installers
+- **v1.1.0** - Network hop checking, auto-shutdown, duration option
+- **v1.0.0** - Initial release (Bash, Perl, Python, PowerShell)
