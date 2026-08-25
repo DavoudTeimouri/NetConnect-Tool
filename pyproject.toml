@@ -66,6 +66,5 @@ onefile = true
 clean = true
 noconfirm = true
 strip = true
-upx = true
 console = true
 hidden-imports = ["yaml", "platformdirs", "tabulate"]
