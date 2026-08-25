@@ -17,6 +17,7 @@ from netconnect.core import (
     ConnectionResult,
 )
 from netconnect.config import config_manager, NetConnectConfig
+from netconnect import __version__
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -47,7 +48,7 @@ Examples:
         help="Increase verbosity (use -vv for debug)"
     )
     parser.add_argument(
-        "--version", action="version", version="%(prog)s 1.0.0"
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     parser.add_argument(
         "--config", help="Path to config file (overrides default)"
