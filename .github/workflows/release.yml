@@ -56,22 +56,18 @@ jobs:
           name: build-log-${{ matrix.os }}
           path: build.log
 
-      - name: Report build failure via release
+      - name: Report build failure via commit
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          {
-            echo "## Windows build failed on ${{ github.ref_name }}"
-            echo '```'
-            cat build.log
-            echo '```'
-          } > error_body.md
-          gh release create "build-error-${{ github.run_id }}" \
-            --repo "${{ github.repository }}" \
-            --title "BUILD ERROR ${{ github.run_id }}" \
-            --notes-file error_body.md \
-            --draft || true
+          git config user.email "ci@netconnect.local"
+          git config user.name "CI Bot"
+          mkdir -p ci-diag
+          cp build.log "ci-diag/build-error-${{ github.run_id }}.log" 2>nul || true
+          git add ci-diag/
+          git commit -m "ci: Windows build error log ${{ github.run_id }}" || true
+          git push origin HEAD:main || true
 
       - name: Rename artifact
         run: |
