@@ -71,11 +71,7 @@ jobs:
 
       - name: Rename artifact
         run: |
-          if exist dist\netconnect.exe (
-            move dist\netconnect.exe "dist\${{ matrix.artifact }}"
-          ) else (
-            mv dist/netconnect "dist/${{ matrix.artifact }}"
-          )
+          python -c "import os, shutil; src='dist/netconnect.exe' if os.path.exists('dist/netconnect.exe') else 'dist/netconnect'; dst='dist/${{ matrix.artifact }}'; os.makedirs('dist', exist_ok=True); shutil.move(src, dst); print('Renamed', src, '->', dst)"
 
       - name: Verify binary
         run: |
