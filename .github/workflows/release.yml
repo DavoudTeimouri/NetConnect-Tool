@@ -15,8 +15,19 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: netconnect-linux-x86_64
+          - os: windows-latest
+            artifact: netconnect-windows-x86_64.exe
+          - os: macos-latest
+            artifact: netconnect-macos-x86_64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,10 +48,46 @@ jobs:
         run: |
           python scripts/build_portable.py
 
-      - name: Verify binary
+      - name: Rename artifact
+        shell: bash
         run: |
-          ./dist/netconnect --version
-          ./dist/netconnect --help
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mv dist/netconnect.exe "dist/${{ matrix.artifact }}"
+          else
+            mv dist/netconnect "dist/${{ matrix.artifact }}"
+          fi
+
+      - name: Verify binary
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ./dist/${{ matrix.artifact }} --version
+            ./dist/${{ matrix.artifact }} --help
+          else
+            ./dist/${{ matrix.artifact }} --version
+            ./dist/${{ matrix.artifact }} --help
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Get version from tag
         id: version
@@ -49,9 +96,10 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
-      - name: Prepare single asset
-        run: |
-          mv dist/netconnect "dist/netconnect-linux-x86_64"
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Extract changelog for this version only
         run: |
@@ -75,4 +123,6 @@ jobs:
             --title "NetConnect ${{ steps.version.outputs.tag }} - Cross-Platform Release" \
             --notes-file release-notes.md \
             --latest \
-            "dist/netconnect-linux-x86_64"
+            artifacts/netconnect-linux-x86_64/netconnect-linux-x86_64 \
+            artifacts/netconnect-windows-x86_64.exe/netconnect-windows-x86_64.exe \
+            artifacts/netconnect-macos-x86_64/netconnect-macos-x86_64
