@@ -56,23 +56,22 @@ jobs:
           name: build-log-${{ matrix.os }}
           path: build.log
 
-      - name: Report build failure via issue
+      - name: Report build failure via release
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create an issue with the build log so it's readable
           {
             echo "## Windows build failed on ${{ github.ref_name }}"
             echo '```'
             cat build.log
             echo '```'
-          } > issue_body.md
-          gh issue create \
+          } > error_body.md
+          gh release create "build-error-${{ github.run_id }}" \
             --repo "${{ github.repository }}" \
-            --title "CI: Windows build failed - ${{ github.run_id }}" \
-            --body-file issue_body.md \
-            --label "ci" || true
+            --title "BUILD ERROR ${{ github.run_id }}" \
+            --notes-file error_body.md \
+            --draft || true
 
       - name: Rename artifact
         run: |
