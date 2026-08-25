@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+dist/
+*.spec
+release-notes.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+venv/
+.venv/
+env/
+
+# Original backups
+.orig/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
