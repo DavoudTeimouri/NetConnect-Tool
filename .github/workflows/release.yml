@@ -56,19 +56,6 @@ jobs:
           name: build-log-${{ matrix.os }}
           path: build.log
 
-      - name: Report build failure via commit
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.email "ci@netconnect.local"
-          git config user.name "CI Bot"
-          mkdir -p ci-diag
-          cp build.log "ci-diag/build-error-${{ github.run_id }}.log" 2>nul || true
-          git add ci-diag/
-          git commit -m "ci: build error log ${{ github.run_id }}" || true
-          git push origin HEAD:main || true
-
       - name: Rename artifact
         run: |
           python -c "import os, shutil; src='dist/netconnect.exe' if os.path.exists('dist/netconnect.exe') else 'dist/netconnect'; dst='dist/${{ matrix.artifact }}'; os.makedirs('dist', exist_ok=True); shutil.move(src, dst); print('Renamed', src, '->', dst)"
