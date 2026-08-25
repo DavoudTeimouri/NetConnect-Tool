@@ -49,43 +49,30 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
-      - name: Delete existing release (clean state)
-        run: |
-          TAG=${{ steps.version.outputs.tag }}
-          # Delete release if exists (keep tag intact)
-          curl -s -X DELETE \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG" \
-            || true
-
       - name: Prepare single asset
         run: |
-          VERSION=${{ steps.version.outputs.version }}
-          # Build creates 'netconnect', rename to platform-specific name
           mv dist/netconnect "dist/netconnect-linux-x86_64"
-          echo "ASSET_PATH=dist/netconnect-linux-x86_64" >> $GITHUB_ENV
 
       - name: Extract changelog for this version only
         run: |
           python3 scripts/extract_changelog.py ${{ steps.version.outputs.version }}
-          # Verify extraction worked
-          echo "=== release-notes.md content ==="
+          echo "=== Generated release-notes.md ==="
           cat release-notes.md
           echo "=== end ==="
-          echo "RELEASE_BODY=release-notes.md" >> $GITHUB_ENV
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tag != ''
+      - name: Delete existing release (clean state)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: NetConnect ${{ steps.version.outputs.tag }} - Cross-Platform Release
-          body_path: release-notes.md
-          draft: false
-          prerelease: false
-          files: dist/netconnect-linux-x86_64
-          generate_release_notes: false
-          fail_on_unmatched_files: true
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "${{ steps.version.outputs.tag }}" --yes --repo "${{ github.repository }}" || true
+
+      - name: Create Release with gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --title "NetConnect ${{ steps.version.outputs.tag }} - Cross-Platform Release" \
+            --notes-file release-notes.md \
+            --latest \
+            "dist/netconnect-linux-x86_64"
