@@ -40,7 +40,6 @@ def main():
         "--onefile",
         "--clean",
         "--noconfirm",
-        "--strip",
         "--name", "netconnect",
         "--console",
         # Hidden imports for runtime
@@ -50,9 +49,12 @@ def main():
         # Entry point
         str(src_dir / "netconnect" / "cli.py"),
     ]
-    
-    # Platform-specific options
+
+    # --strip only works on Unix (no strip.exe on Windows)
     system = platform.system().lower()
+    if system != "windows":
+        pyinstaller_args.append("--strip")
+
     if system == "windows":
         icon_path = project_root / "packaging" / "windows" / "icon.ico"
         if icon_path.exists():
