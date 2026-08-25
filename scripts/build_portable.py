@@ -10,15 +10,12 @@ from pathlib import Path
 
 
 def run_cmd(cmd, cwd=None, check=True):
-    """Run command and return result."""
+    """Run command and return result, streaming output live."""
     print(f"Running: {' '.join(cmd)}")
-    result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print(result.stderr, file=sys.stderr)
+    # Stream live to avoid pipe deadlock on Windows (PyInstaller subprocess)
+    result = subprocess.run(cmd, cwd=cwd)
     if check and result.returncode != 0:
-        raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+        raise subprocess.CalledProcessError(result.returncode, cmd)
     return result
 
 
@@ -80,9 +77,9 @@ def main():
         print("\nTesting executable...")
         test_result = run_cmd([str(exe_path), "--version"], check=False)
         if test_result.returncode == 0:
-            print(f"✓ Version test passed: {test_result.stdout.strip()}")
+            print("✓ Version test passed")
         else:
-            print(f"✗ Version test failed")
+            print("✗ Version test failed")
     else:
         print(f"\n✗ Executable not found at {exe_path}")
         sys.exit(1)
