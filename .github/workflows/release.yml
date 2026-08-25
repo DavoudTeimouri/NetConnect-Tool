@@ -74,3 +74,5 @@ jobs:
           prerelease: false
           files: ${{ env.ASSET_PATH }}
           generate_release_notes: false
+          replace_artifacts: true
+          fail_on_unmatched_files: true
