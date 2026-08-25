@@ -50,27 +50,15 @@ jobs:
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Prepare release assets
+        id: assets
         run: |
-          VERSION=${TAG#v}
+          VERSION=${{ steps.version.outputs.version }}
           mv dist/netconnect "dist/netconnect-linux-x86_64"
           echo "asset=dist/netconnect-linux-x86_64" >> $GITHUB_OUTPUT
-        id: assets
 
       - name: Extract changelog for version
         run: |
-          VERSION=${TAG#v}
-          # Extract section for this version
-          awk -v ver="## \\[$VERSION\\]" '
-            $0 ~ ver {p=1; next}
-            p && /^## \[/ && !/^## \[' ver '\]/ {p=0}
-            p {print}
-          ' CHANGELOG.md > release-notes.md
-          # If no specific section found, use last 50 lines as fallback
-          if [ ! -s release-notes.md ]; then
-            tail -50 CHANGELOG.md > release-notes.md
-          fi
-        env:
-          TAG: ${{ steps.version.outputs.tag }}
+          python3 scripts/extract_changelog.py ${{ steps.version.outputs.version }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
