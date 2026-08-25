@@ -53,6 +53,7 @@ jobs:
         id: assets
         run: |
           VERSION=${{ steps.version.outputs.version }}
+          # Build creates 'netconnect', rename to platform-specific name
           mv dist/netconnect "dist/netconnect-linux-x86_64"
           echo "asset=dist/netconnect-linux-x86_64" >> $GITHUB_OUTPUT
 
@@ -69,5 +70,5 @@ jobs:
           body_path: release-notes.md
           draft: false
           prerelease: false
-          files: ${{ steps.assets.outputs.asset }}
+          files: dist/netconnect-linux-x86_64
           generate_release_notes: false
