@@ -45,7 +45,6 @@ jobs:
           pip install -e ".[build]"
 
       - name: Build portable executable
-        shell: bash
         run: |
           python scripts/build_portable.py 2>&1 | tee build.log
           echo "BUILD_EXIT=${PIPESTATUS[0]}" >> $GITHUB_ENV
@@ -58,24 +57,17 @@ jobs:
           path: build.log
 
       - name: Rename artifact
-        shell: bash
         run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            mv dist/netconnect.exe "dist/${{ matrix.artifact }}"
-          else
+          if exist dist\netconnect.exe (
+            move dist\netconnect.exe "dist\${{ matrix.artifact }}"
+          ) else (
             mv dist/netconnect "dist/${{ matrix.artifact }}"
-          fi
+          )
 
       - name: Verify binary
-        shell: bash
         run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            ./dist/${{ matrix.artifact }} --version
-            ./dist/${{ matrix.artifact }} --help
-          else
-            ./dist/${{ matrix.artifact }} --version
-            ./dist/${{ matrix.artifact }} --help
-          fi
+          ./dist/${{ matrix.artifact }} --version
+          ./dist/${{ matrix.artifact }} --help
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
