@@ -8,8 +8,9 @@ def extract_changelog(version, changelog_path='CHANGELOG.md', output_path='relea
     with open(changelog_path, 'r') as f:
         content = f.read()
 
-    # Find version section
-    pattern = rf'## \[{re.escape(version)}\]\s*\n(.*?)(?:\n## \[|\Z)'
+    # Find version section - look for "## [X.Y.Z]" pattern
+    # The version in changelog has format "## [2.0.0] - 2025-08-24"
+    pattern = rf'(## \[{re.escape(version)}\]\s*.*?)(?=\n## \[|\Z)'
     match = re.search(pattern, content, re.DOTALL)
     if match:
         notes = match.group(1).strip()
