@@ -54,9 +54,9 @@ def main():
     # Platform-specific options
     system = platform.system().lower()
     if system == "windows":
-        pyinstaller_args.extend([
-            "--icon", "packaging/windows/icon.ico" if (project_root / "packaging" / "windows" / "icon.ico").exists() else "NONE",
-        ])
+        icon_path = project_root / "packaging" / "windows" / "icon.ico"
+        if icon_path.exists():
+            pyinstaller_args.extend(["--icon", str(icon_path)])
     elif system == "darwin":
         pyinstaller_args.extend([
             "--osx-bundle-identifier", "com.netconnect.tool",
