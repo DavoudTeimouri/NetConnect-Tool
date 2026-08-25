@@ -1,0 +1,76 @@
+246 INFO: PyInstaller: 6.22.2, contrib hooks: 2026.7
+246 INFO: Python: 3.12.10
+274 INFO: Platform: Windows-2025Server-10.0.26100-SP0
+274 INFO: Python environment: C:\hostedtoolcache\windows\Python\3.12.10\x64
+274 INFO: wrote D:\a\NetConnect-Tool\NetConnect-Tool\netconnect.spec
+278 INFO: Removing temporary files and cleaning cache in C:\Users\runneradmin\AppData\Local\pyinstaller
+280 INFO: Module search paths (PYTHONPATH):
+['D:\\a\\NetConnect-Tool\\NetConnect-Tool',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\python312.zip',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\DLLs',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages',
+ 'D:\\a\\NetConnect-Tool\\NetConnect-Tool\\src',
+ 'D:\\a\\NetConnect-Tool\\NetConnect-Tool\\src']
+530 INFO: checking Analysis
+530 INFO: Building Analysis because Analysis-00.toc is non existent
+530 INFO: Looking for Python shared library...
+530 INFO: Using Python shared library: C:\hostedtoolcache\windows\Python\3.12.10\x64\python312.dll
+530 INFO: Running Analysis Analysis-00.toc
+530 INFO: Target bytecode optimization level: 0
+530 INFO: Initializing module dependency graph...
+536 INFO: Initializing module graph hook caches...
+552 INFO: Analyzing modules for base_library.zip ...
+1651 INFO: Processing standard module hook 'hook-encodings.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+2228 INFO: Processing standard module hook 'hook-math.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+3388 INFO: Processing standard module hook 'hook-pickle.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+4370 INFO: Processing standard module hook 'hook-heapq.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+4937 INFO: Caching module dependency graph...
+4980 INFO: Analyzing D:\a\NetConnect-Tool\NetConnect-Tool\src\netconnect\cli.py
+5337 INFO: Processing pre-safe-import-module hook 'hook-platformdirs.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+5339 INFO: SetuptoolsInfo: initializing cached setuptools info...
+5995 INFO: Processing standard module hook 'hook-platformdirs.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+6071 INFO: Processing standard module hook 'hook-_ctypes.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\PyInstaller\\hooks'
+6168 INFO: Processing module hooks (post-graph stage)...
+6175 INFO: Performing binary vs. data reclassification (1 entries)
+6176 INFO: Looking for ctypes DLLs
+6199 INFO: Analyzing run-time hooks ...
+6199 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'C:\\hostedtoolcache\\windows\\Python\\3.12.10\\x64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+6205 INFO: Creating base_library.zip...
+6227 INFO: Looking for dynamic libraries
+6374 INFO: Extra DLL search directories (AddDllDirectory): []
+6374 INFO: Extra DLL search directories (PATH): []
+6931 INFO: Warnings written to D:\a\NetConnect-Tool\NetConnect-Tool\build\netconnect\warn-netconnect.txt
+6948 INFO: Graph cross-reference written to D:\a\NetConnect-Tool\NetConnect-Tool\build\netconnect\xref-netconnect.html
+6966 INFO: checking PYZ
+6966 INFO: Building PYZ because PYZ-00.toc is non existent
+6966 INFO: Building PYZ (ZlibArchive) D:\a\NetConnect-Tool\NetConnect-Tool\build\netconnect\PYZ-00.pyz
+7164 INFO: Building PYZ (ZlibArchive) D:\a\NetConnect-Tool\NetConnect-Tool\build\netconnect\PYZ-00.pyz completed successfully.
+7183 INFO: checking PKG
+7183 INFO: Building PKG because PKG-00.toc is non existent
+7183 INFO: Building PKG (CArchive) netconnect.pkg
+9793 INFO: Building PKG (CArchive) netconnect.pkg completed successfully.
+9795 INFO: Bootloader C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\run.exe
+9795 INFO: checking EXE
+9795 INFO: Building EXE because EXE-00.toc is non existent
+9795 INFO: Building EXE from EXE-00.toc
+9795 INFO: Copying bootloader EXE to D:\a\NetConnect-Tool\NetConnect-Tool\dist\netconnect.exe
+9799 INFO: Copying icon to EXE
+9801 INFO: Copying 0 resources to EXE
+9801 INFO: Embedding manifest in EXE
+9803 INFO: Appending PKG archive to EXE
+9807 INFO: Fixing EXE headers
+9895 INFO: Building EXE from EXE-00.toc completed successfully.
+9897 INFO: Build complete! The results are available in: D:\a\NetConnect-Tool\NetConnect-Tool\dist
+Traceback (most recent call last):
+Building for windows (AMD64)...
+Running: C:\hostedtoolcache\windows\Python\3.12.10\x64\python.exe -m PyInstaller --onefile --clean --noconfirm --name netconnect --console --hidden-import yaml --hidden-import platformdirs --hidden-import tabulate D:\a\NetConnect-Tool\NetConnect-Tool\src\netconnect\cli.py
+  File "D:\a\NetConnect-Tool\NetConnect-Tool\scripts\build_portable.py", line 89, in <module>
+    main()
+  File "D:\a\NetConnect-Tool\NetConnect-Tool\scripts\build_portable.py", line 73, in main
+    print(f"\n\u2713 Built successfully: {exe_path}")
+  File "C:\hostedtoolcache\windows\Python\3.12.10\x64\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 2: character maps to <undefined>
