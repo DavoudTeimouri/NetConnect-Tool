@@ -8,6 +8,11 @@ import platform
 import shutil
 from pathlib import Path
 
+# Force UTF-8 output on Windows (cp1252 can't encode checkmarks)
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 
 def run_cmd(cmd, cwd=None, check=True):
     """Run command and return result, streaming output live."""
@@ -25,12 +30,12 @@ def main():
     src_dir = project_root / "src"
     dist_dir = project_root / "dist"
     build_dir = project_root / "build"
-    
+
     # Clean previous builds
     for d in [dist_dir, build_dir]:
         if d.exists():
             shutil.rmtree(d)
-    
+
     # PyInstaller options
     pyinstaller_args = [
         sys.executable, "-m", "PyInstaller",
@@ -60,28 +65,28 @@ def main():
         pyinstaller_args.extend([
             "--osx-bundle-identifier", "com.netconnect.tool",
         ])
-    
+
     print(f"Building for {system} ({platform.machine()})...")
     run_cmd(pyinstaller_args, cwd=project_root)
-    
+
     # Find built executable
     exe_name = "netconnect.exe" if system == "windows" else "netconnect"
     exe_path = dist_dir / exe_name
-    
+
     if exe_path.exists():
         size_mb = exe_path.stat().st_size / (1024 * 1024)
-        print(f"\n✓ Built successfully: {exe_path}")
+        print(f"\n[OK] Built successfully: {exe_path}")
         print(f"  Size: {size_mb:.1f} MB")
-        
+
         # Test the executable
         print("\nTesting executable...")
         test_result = run_cmd([str(exe_path), "--version"], check=False)
         if test_result.returncode == 0:
-            print("✓ Version test passed")
+            print("[OK] Version test passed")
         else:
-            print("✗ Version test failed")
+            print("[FAIL] Version test failed")
     else:
-        print(f"\n✗ Executable not found at {exe_path}")
+        print(f"\n[FAIL] Executable not found at {exe_path}")
         sys.exit(1)
 
 
