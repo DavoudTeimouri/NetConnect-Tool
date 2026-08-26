@@ -23,11 +23,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: netconnect-linux-x86_64
+            artifact: netconnect-linux-x86_64.bin
           - os: windows-latest
             artifact: netconnect-windows-x86_64.exe
           - os: macos-latest
-            artifact: netconnect-macos-x86_64
+            artifact: netconnect-macos-x86_64.bin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -120,6 +120,6 @@ jobs:
             --title "NetConnect ${{ steps.version.outputs.tag }} - Cross-Platform Release" \
             --notes-file release-notes.md \
             --latest \
-            artifacts/netconnect-linux-x86_64/netconnect-linux-x86_64 \
+            artifacts/netconnect-linux-x86_64.bin/netconnect-linux-x86_64.bin \
             artifacts/netconnect-windows-x86_64.exe/netconnect-windows-x86_64.exe \
-            artifacts/netconnect-macos-x86_64/netconnect-macos-x86_64
+            artifacts/netconnect-macos-x86_64.bin/netconnect-macos-x86_64.bin

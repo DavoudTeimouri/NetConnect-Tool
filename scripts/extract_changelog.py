@@ -1,26 +1,42 @@
 #!/usr/bin/env python3
-"""Extract changelog section for a specific version."""
+"""Extract changelog section for a single version (one release = its own notes)."""
 
 import re
 import sys
 
+VERSION_HEADER = re.compile(r'^##\s+\[([^\]]+)\]')
+
+
 def extract_changelog(version, changelog_path='CHANGELOG.md', output_path='release-notes.md'):
     with open(changelog_path, 'r') as f:
-        content = f.read()
+        lines = f.readlines()
 
-    # Find version section - look for "## [X.Y.Z]" pattern
-    # The version in changelog has format "## [2.0.0] - 2025-08-24"
-    pattern = rf'(## \[{re.escape(version)}\]\s*.*?)(?=\n## \[|\Z)'
-    match = re.search(pattern, content, re.DOTALL)
-    if match:
-        notes = match.group(1).strip()
-    else:
-        # Fallback: last 50 lines
-        notes = '\n'.join(content.split('\n')[-50:])
+    # Locate the target version header
+    start = None
+    for i, line in enumerate(lines):
+        m = VERSION_HEADER.match(line)
+        if m and m.group(1) == version:
+            start = i
+            break
+
+    if start is None:
+        raise SystemExit(f"ERROR: version [{version}] not found in {changelog_path}")
+
+    # End at the next version header (or EOF) — never spill into other releases
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        if VERSION_HEADER.match(lines[j]):
+            end = j
+            break
+
+    notes = ''.join(lines[start:end]).strip() + '\n'
 
     with open(output_path, 'w') as f:
         f.write(notes)
-    print(f"Extracted changelog for version {version}")
+
+    print(f"Extracted changelog section for v{version} ({len(notes)} chars)")
+    return notes
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
