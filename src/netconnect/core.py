@@ -37,7 +37,7 @@ class PortListener:
 
 # Banner sent to clients (curl, telnet, nc, ...) on a successful TCP connection.
 APP_BANNER = "NetConnect"
-APP_VERSION = "2.1.0"
+APP_VERSION = "2.1.1"
 
 
 def banner_text() -> str:
@@ -270,13 +270,18 @@ def run_listeners(listeners: List[PortListener], duration: Optional[int] = None)
 
     def handle_tcp(listener: PortListener, conn: "socket.socket", addr) -> None:
         client_str = f"{addr[0]}:{addr[1]}"
+        banner = banner_text().encode()
         try:
             if listener.ssl_context is not None:
                 conn = listener.ssl_context.wrap_socket(conn, server_side=True)
                 print(f"TLS connection from {client_str} on port {listener.port}")
             else:
                 print(f"TCP connection from {client_str} on port {listener.port}")
-            conn.sendall(banner_text().encode())
+            # Send banner immediately so interactive clients (telnet/nc/curl)
+            # see it. Note: Test-NetConnection / port scanners never read
+            # server data, so they will not display this banner.
+            conn.sendall(banner)
+            print(f"  -> sent banner: {banner.decode().strip()!r}")
             conn.settimeout(5.0)
             try:
                 data = conn.recv(4096)
@@ -299,6 +304,9 @@ def run_listeners(listeners: List[PortListener], duration: Optional[int] = None)
         return
 
     print(f"Listening on {len(sockets)} socket(s)... Press Ctrl+C to stop")
+    print("Clients (telnet/nc/curl) receive an identification banner on connect.")
+    print("Note: Test-NetConnection and port scanners check reachability only and")
+    print("      will NOT display the banner (they never read server responses).")
     if duration:
         print(f"Will stop after {duration} seconds")
 

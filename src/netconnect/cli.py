@@ -197,8 +197,11 @@ def cmd_listen(args) -> int:
             print(f"Error building SSL context: {e}", file=sys.stderr)
             return 1
 
-    label = "TLS" if ssl_ctx else args.protocol.upper()
-    print(f"Creating listeners on ports: {ports} ({label})")
+    label = "TLS" if ssl_ctx else args.protocol
+    proto_note = "" if args.protocol == "both" else f" ({label})"
+    print(f"Creating listeners on ports: {args.ports}{proto_note}")
+    if ssl_ctx:
+        print("TLS enabled (self-signed certificate)")
 
     listeners = create_listeners(ports, protocol, ssl_context=ssl_ctx)
     if not listeners:

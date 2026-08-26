@@ -1,6 +1,6 @@
 """NetConnect - Cross-platform TCP/UDP connection testing tool."""
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 __author__ = "NetConnect Contributors"
 __license__ = "MIT"
 

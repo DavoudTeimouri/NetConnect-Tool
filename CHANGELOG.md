@@ -1,5 +1,11 @@
 # Change Log
 
+## [2.1.1] - 2025-08-26
+
+### Changed
+- `listen` startup message now prints the raw port spec the user entered (e.g. `8080-8090`) instead of the fully expanded list, and no longer appends `(BOTH)`
+- Listener now logs the banner it sends on each connection, and prints a note that `Test-NetConnection`/port scanners check reachability only and will not display the banner (they never read server responses)
+
 ## [2.1.0] - 2025-08-26
 
 ### Added
