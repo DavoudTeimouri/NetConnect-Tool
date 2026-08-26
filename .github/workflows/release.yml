@@ -23,11 +23,11 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: netconnect-linux-x86_64.bin
+            artifact_type: deb
           - os: windows-latest
-            artifact: netconnect-windows-x86_64.exe
+            artifact_type: zip
           - os: macos-latest
-            artifact: netconnect-macos-x86_64.bin
+            artifact_type: bin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,29 +47,43 @@ jobs:
       - name: Build portable executable
         run: |
           python scripts/build_portable.py 2>&1 | tee build.log
-          echo "BUILD_EXIT=${PIPESTATUS[0]}" >> $GITHUB_ENV
 
-      - name: Upload build log (always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log-${{ matrix.os }}
-          path: build.log
-
-      - name: Rename artifact
+      - name: Package (platform-specific)
+        id: pkg
         run: |
-          python -c "import os, shutil; src='dist/netconnect.exe' if os.path.exists('dist/netconnect.exe') else 'dist/netconnect'; dst='dist/${{ matrix.artifact }}'; os.makedirs('dist', exist_ok=True); shutil.move(src, dst); print('Renamed', src, '->', dst)"
+          python - <<'PY'
+          import os, sys, shutil, subprocess, zipfile, pathlib
+          t = "${{ matrix.artifact_type }}"
+          dist = pathlib.Path("dist")
+          exe = dist / ("netconnect.exe" if os.path.exists(dist / "netconnect.exe") else "netconnect")
+          if not exe.exists():
+              raise SystemExit(f"binary not found: {exe}")
+          if t == "zip":
+              out = dist / "netconnect-windows-x86_64.zip"
+              with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+                  z.write(exe, "netconnect.exe")
+              print(f"PKG={out.name}")
+          elif t == "bin":
+              out = dist / "netconnect-macos-x86_64.bin"
+              shutil.move(str(exe), str(out))
+              print(f"PKG={out.name}")
+          elif t == "deb":
+              bin_out = dist / "netconnect-linux-x86_64.bin"
+              shutil.copy(str(exe), str(bin_out))
+              deb_out = dist / "netconnect-linux-x86_64.deb"
+              subprocess.run([sys.executable, "scripts/build_deb.py", str(exe), str(deb_out)], check=True)
+              print(f"PKG={deb_out.name}")
+          PY
 
-      - name: Verify binary
+      - name: Verify artifact
         run: |
-          ./dist/${{ matrix.artifact }} --version
-          ./dist/${{ matrix.artifact }} --help
+          ls -la dist/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: dist/${{ matrix.artifact }}
+          name: netconnect-${{ matrix.os }}-pkg
+          path: dist/*
 
   release:
     name: Create Release
@@ -97,6 +111,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: |
+          find artifacts -type f
 
       - name: Extract changelog for this version only
         run: |
@@ -120,6 +139,4 @@ jobs:
             --title "NetConnect ${{ steps.version.outputs.tag }} - Cross-Platform Release" \
             --notes-file release-notes.md \
             --latest \
-            artifacts/netconnect-linux-x86_64.bin/netconnect-linux-x86_64.bin \
-            artifacts/netconnect-windows-x86_64.exe/netconnect-windows-x86_64.exe \
-            artifacts/netconnect-macos-x86_64.bin/netconnect-macos-x86_64.bin
+            $(find artifacts -type f -name 'netconnect-*' -print)
