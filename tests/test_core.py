@@ -3,6 +3,8 @@
 import pytest
 from netconnect.core import (
     parse_ip_range,
+    parse_port_range,
+    banner_text,
     Protocol,
     create_tcp_listener,
     create_udp_listener,
@@ -61,6 +63,38 @@ def test_create_listeners():
     listeners = create_listeners([0, 0], Protocol.BOTH)  # Auto-assign ports
     assert len(listeners) >= 2  # At least TCP + UDP for each port
     close_listeners(listeners)
+
+
+def test_parse_port_range_single():
+    assert parse_port_range("80") == [80]
+
+
+def test_parse_port_range_list():
+    assert parse_port_range("80,443,8080") == [80, 443, 8080]
+
+
+def test_parse_port_range_range():
+    assert parse_port_range("8080-8082") == [8080, 8081, 8082]
+
+
+def test_parse_port_range_mixed():
+    assert parse_port_range("22,8080-8082") == [22, 8080, 8081, 8082]
+
+
+def test_parse_port_range_reversed():
+    assert parse_port_range("100-98") == [98, 99, 100]
+
+
+def test_parse_port_range_dedup_and_clamp():
+    # Out-of-range values dropped, duplicates removed, order preserved
+    assert parse_port_range("80,80,70000") == [80]
+
+
+def test_banner_text():
+    b = banner_text()
+    assert b.startswith("NetConnect/")
+    assert "NetConnect cross-platform connectivity tool" in b
+    assert b.endswith("\r\n")
 
 
 def test_close_listeners():

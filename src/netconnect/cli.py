@@ -9,10 +9,12 @@ from tabulate import tabulate
 
 from netconnect.core import (
     parse_ip_range,
+    parse_port_range,
     test_connection,
     create_listeners,
     close_listeners,
     run_listeners,
+    build_ssl_context,
     Protocol,
     ConnectionResult,
 )
@@ -39,6 +41,15 @@ Examples:
   
   # Show config file location
   netconnect config --show-path
+
+  # Listen on a port range (TCP+UDP)
+  netconnect listen -p 8080-8090 --duration 60
+
+  # Listen with TLS (self-signed cert auto-generated)
+  netconnect listen -p 443 --ssl
+
+  # Test a port range across a host range
+  netconnect test -t 192.168.1.100-192.168.1.110 -p 22,80,443 --protocol tcp
         """
     )
     
@@ -59,8 +70,8 @@ Examples:
     # listen command
     listen_parser = subparsers.add_parser("listen", help="Create port listeners")
     listen_parser.add_argument(
-        "-p", "--ports", nargs="+", type=int, required=True,
-        help="Ports to listen on"
+        "-p", "--ports", required=True,
+        help="Ports to listen on. Comma-separated and/or ranges, e.g. '8080 9000' or '8080-8090' or '80,443,8080-8090'"
     )
     listen_parser.add_argument(
         "--protocol", choices=["tcp", "udp", "both"], default="both",
@@ -74,6 +85,18 @@ Examples:
         "--host", default="0.0.0.0",
         help="Host to bind to (default: 0.0.0.0)"
     )
+    listen_parser.add_argument(
+        "--ssl", action="store_true",
+        help="Accept TLS/SSL connections (self-signed cert generated if --ssl-cert not given)"
+    )
+    listen_parser.add_argument(
+        "--ssl-cert", default=None,
+        help="Path to TLS certificate file (PEM). If omitted, a self-signed cert is generated"
+    )
+    listen_parser.add_argument(
+        "--ssl-key", default=None,
+        help="Path to TLS private key file (PEM). Required only with --ssl-cert"
+    )
     
     # test command
     test_parser = subparsers.add_parser("test", help="Test connections")
@@ -82,8 +105,8 @@ Examples:
         help="Target IP range (e.g., 192.168.1.100-192.168.1.110) or single IP"
     )
     test_parser.add_argument(
-        "-p", "--ports", nargs="+", type=int, required=True,
-        help="Ports to test"
+        "-p", "--ports", required=True,
+        help="Ports to test. Comma-separated and/or ranges, e.g. '22 80 443' or '8080-8090'"
     )
     test_parser.add_argument(
         "--protocol", choices=["tcp", "udp", "both"], default="both",
@@ -100,6 +123,10 @@ Examples:
     
     # config command
     config_parser = subparsers.add_parser("config", help="Manage configuration")
+    config_parser.add_argument(
+        "--show-path", action="store_true",
+        help="Print the config file path and exit"
+    )
     config_sub = config_parser.add_subparsers(dest="config_action")
     config_sub.add_parser("show", help="Show current configuration")
     config_sub.add_parser("show-path", help="Show config file path")
@@ -152,19 +179,37 @@ def cmd_listen(args) -> int:
     """Handle listen command."""
     protocol_map = {"tcp": Protocol.TCP, "udp": Protocol.UDP, "both": Protocol.BOTH}
     protocol = protocol_map[args.protocol]
-    
-    print(f"Creating listeners on ports: {args.ports} ({args.protocol.upper()})")
-    
-    listeners = create_listeners(args.ports, protocol)
+
+    try:
+        ports = parse_port_range(args.ports)
+    except ValueError as e:
+        print(f"Error: invalid port spec '{args.ports}': {e}", file=sys.stderr)
+        return 1
+    if not ports:
+        print("Error: no valid ports specified", file=sys.stderr)
+        return 1
+
+    ssl_ctx = None
+    if args.ssl or args.ssl_cert:
+        try:
+            ssl_ctx = build_ssl_context(args.ssl_cert, args.ssl_key)
+        except Exception as e:
+            print(f"Error building SSL context: {e}", file=sys.stderr)
+            return 1
+
+    label = "TLS" if ssl_ctx else args.protocol.upper()
+    print(f"Creating listeners on ports: {ports} ({label})")
+
+    listeners = create_listeners(ports, protocol, ssl_context=ssl_ctx)
     if not listeners:
         print("Error: Failed to create any listeners", file=sys.stderr)
         return 1
-    
+
     try:
         run_listeners(listeners, args.duration)
     finally:
         close_listeners(listeners)
-    
+
     return 0
 
 
@@ -172,23 +217,32 @@ def cmd_test(args) -> int:
     """Handle test command."""
     config = config_manager.load()
     defaults = config.defaults
-    
+
     timeout = args.timeout or defaults.get("timeout", 5.0)
     output_format = args.output or defaults.get("output", "table")
     protocol_map = {"tcp": Protocol.TCP, "udp": Protocol.UDP, "both": Protocol.BOTH}
     protocol = protocol_map[args.protocol or defaults.get("protocol", "both")]
-    
+
     hosts = parse_ip_range(args.targets)
-    print(f"Testing {len(hosts)} host(s) on {len(args.ports)} port(s) ({args.protocol.upper()})...")
-    
+    try:
+        ports = parse_port_range(args.ports)
+    except ValueError as e:
+        print(f"Error: invalid port spec '{args.ports}': {e}", file=sys.stderr)
+        return 1
+    if not ports:
+        print("Error: no valid ports specified", file=sys.stderr)
+        return 1
+
+    print(f"Testing {len(hosts)} host(s) on {len(ports)} port(s) ({args.protocol.upper()})...")
+
     all_results = []
     for host in hosts:
-        for port in args.ports:
+        for port in ports:
             results = test_connection(host, port, protocol, timeout)
             all_results.extend(results)
-    
+
     output_results(all_results, output_format)
-    
+
     # Return non-zero if any failed
     failed = sum(1 for r in all_results if not r.success)
     return 1 if failed > 0 else 0
@@ -196,6 +250,11 @@ def cmd_test(args) -> int:
 
 def cmd_config(args) -> int:
     """Handle config command."""
+    # --show-path flag (works without a subcommand)
+    if args.show_path:
+        print(config_manager.get_config_path())
+        return 0
+
     config = config_manager.load()
     
     if args.config_action == "show":

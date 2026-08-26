@@ -1,5 +1,16 @@
 # Change Log
 
+## [2.1.0] - 2025-08-26
+
+### Added
+- Port range support for `listen` and `test` commands (`-p 8080-8090`, `-p 80,443,8080-8090`)
+- Identification banner sent to connecting clients on successful TCP connections, so tools like `curl`, `telnet`, and `nc` receive a response (banner + echo of sent data)
+- SSL/TLS support: `listen --ssl` accepts TLS connections using a self-signed certificate generated on the fly (or supply your own with `--ssl-cert`/`--ssl-key`)
+- `config --show-path` flag (prints the config file path directly)
+
+### Changed
+- `netconnect config --show-path` now works as a top-level flag (previously only the `show-path` subcommand worked)
+
 ## [2.0.0] - 2025-08-24
 
 ### Added
