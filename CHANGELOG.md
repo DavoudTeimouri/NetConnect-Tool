@@ -1,5 +1,14 @@
 # Change Log
 
+## [2.2.0] - 2025-08-26
+
+### Changed
+- All platforms now ship as a single portable binary (no installer, no `.deb`)
+  - Windows: `netconnect-windows-x86_64.zip` (contains `netconnect.exe`)
+  - macOS: `netconnect-macos-x86_64` (extensionless portable)
+  - Linux: `netconnect-linux-x86_64` (extensionless portable)
+- Config file (`config.yaml`) now lives in the same folder as the running executable, making the app fully portable (no per-user config directory)
+
 ## [2.1.1] - 2025-08-26
 
 ### Changed

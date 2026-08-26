@@ -1,11 +1,11 @@
 """Configuration management for NetConnect."""
 
 import os
+import sys
 import yaml
 from dataclasses import dataclass, field, asdict
 from typing import Optional
 from pathlib import Path
-import platformdirs
 
 
 @dataclass
@@ -29,7 +29,8 @@ class ConfigManager:
     def __init__(self):
         self.app_name = "netconnect"
         self.app_author = "NetConnect"
-        self.config_dir = Path(platformdirs.user_config_dir(self.app_name, self.app_author))
+        # Portable: config lives next to the running executable/folder.
+        self.config_dir = Path(sys.executable).resolve().parent
         self.config_file = self.config_dir / "config.yaml"
         self._config: Optional[NetConnectConfig] = None
     

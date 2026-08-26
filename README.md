@@ -11,34 +11,27 @@ NetConnect is a modern, cross-platform command-line tool for creating TCP/UDP po
 - **Persistent configuration** - YAML config file with sensible defaults
 - **Real socket operations** - TCP connect with latency, UDP datagram testing, listener sockets
 - **Platform-native installers** - DEB/RPM/AppImage, EXE/MSI, PKG/DMG
-
+- **Fully portable** - single executable, config stored next to the binary
 ## Quick Start
 
 ### Download Portable Binary
 ```bash
-# Linux
-wget https://github.com/DavoudTeimouri/NetConnect-Tool/releases/latest/download/netconnect
-chmod +x netconnect
+# Linux (portable, extensionless)
+wget https://github.com/DavoudTeimouri/NetConnect-Tool/releases/latest/download/netconnect-linux-x86_64
+chmod +x netconnect-linux-x86_64
+
+# macOS (portable, extensionless)
+wget https://github.com/DavoudTeimouri/NetConnect-Tool/releases/latest/download/netconnect-macos-x86_64
+chmod +x netconnect-macos-x86_64
+
+# Windows (ZIP - extract netconnect.exe)
+wget https://github.com/DavoudTeimouri/NetConnect-Tool/releases/latest/download/netconnect-windows-x86_64.zip
+unzip netconnect-windows-x86_64.zip
 
 # Or build from source
 git clone https://github.com/DavoudTeimouri/NetConnect-Tool
 cd NetConnect-Tool
 ./scripts/build_portable.py
-```
-
-### Install via Package Manager
-```bash
-# Debian/Ubuntu
-sudo dpkg -i netconnect_2.0.0_amd64.deb
-
-# RHEL/Fedora
-sudo rpm -i netconnect-2.0.0-1.x86_64.rpm
-
-# Windows
-netconnect-2.0.0-setup.exe
-
-# macOS
-sudo installer -pkg NetConnect-2.0.0.pkg -target /
 ```
 
 ## Usage
@@ -88,8 +81,7 @@ netconnect config reset
 ## Configuration File
 
 Location:
-- **Linux/macOS**: `~/.config/netconnect/config.yaml`
-- **Windows**: `%APPDATA%\netconnect\config.yaml`
+- The `config.yaml` file is created in the **same folder as the running executable** (portable layout), so the app can be moved/copied as a single file with its config.
 
 ```yaml
 defaults:
@@ -140,7 +132,7 @@ Manage configuration.
 
 - **Runtime**: None (single portable executable)
 - **Build**: Python 3.10+, PyInstaller
-- **Dependencies** (bundled): platformdirs, pyyaml, tabulate
+- **Dependencies** (bundled): pyyaml, tabulate
 
 ## Building from Source
 

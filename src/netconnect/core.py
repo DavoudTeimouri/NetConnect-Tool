@@ -37,7 +37,7 @@ class PortListener:
 
 # Banner sent to clients (curl, telnet, nc, ...) on a successful TCP connection.
 APP_BANNER = "NetConnect"
-APP_VERSION = "2.1.1"
+APP_VERSION = "2.2.0"
 
 
 def banner_text() -> str:
