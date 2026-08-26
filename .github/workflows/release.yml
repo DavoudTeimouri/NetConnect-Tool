@@ -55,7 +55,7 @@ jobs:
 
       - name: Verify artifact
         run: |
-          ls -la dist/
+          python -c "import os; print('\n'.join(sorted(os.listdir('dist'))))"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
