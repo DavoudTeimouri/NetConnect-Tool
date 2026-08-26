@@ -51,29 +51,7 @@ jobs:
       - name: Package (platform-specific)
         id: pkg
         run: |
-          python - <<'PY'
-          import os, sys, shutil, subprocess, zipfile, pathlib
-          t = "${{ matrix.artifact_type }}"
-          dist = pathlib.Path("dist")
-          exe = dist / ("netconnect.exe" if os.path.exists(dist / "netconnect.exe") else "netconnect")
-          if not exe.exists():
-              raise SystemExit(f"binary not found: {exe}")
-          if t == "zip":
-              out = dist / "netconnect-windows-x86_64.zip"
-              with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-                  z.write(exe, "netconnect.exe")
-              print(f"PKG={out.name}")
-          elif t == "bin":
-              out = dist / "netconnect-macos-x86_64.bin"
-              shutil.move(str(exe), str(out))
-              print(f"PKG={out.name}")
-          elif t == "deb":
-              bin_out = dist / "netconnect-linux-x86_64.bin"
-              shutil.copy(str(exe), str(bin_out))
-              deb_out = dist / "netconnect-linux-x86_64.deb"
-              subprocess.run([sys.executable, "scripts/build_deb.py", str(exe), str(deb_out)], check=True)
-              print(f"PKG={deb_out.name}")
-          PY
+          python scripts/package_artifact.py ${{ matrix.artifact_type }}
 
       - name: Verify artifact
         run: |
